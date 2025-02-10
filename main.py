@@ -13,6 +13,7 @@ models.Base.metadata.create_all(bind=engine)
 origins = [
     "http://localhost:3000",  # React em desenvolvimento
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
     "https://meusite.com",  # Produção
 ]
 app.add_middleware(
@@ -23,17 +24,18 @@ app.add_middleware(
     allow_headers=["*"],  # Permitir todos os headers
 )
 
-def inserir_acomodacoes(db: Session):
-    if db.query(models.Acomodacoes).count() == 0:
+def add_accomodation(db: Session):
+    if db.query(models.Accomodation).count() == 0:
         for data in dummy:
-            acomodacao = models.Acomodacoes(
+            accomodation = models.Accomodation(
                 id=data['id'],
                 nome=data['nome'],
                 img=data['img'],
                 preco=data['preco'],
-                localizacao=data['localizacao']
+                localizacao=data['localizacao'],
+                descricao=data['descricao']
             )
-            db.add(acomodacao)
+            db.add(accomodation)
         db.commit()
 
 def get_db():
@@ -50,30 +52,31 @@ def startup_db():
     db = SessionLocal()
     try:
         models.Base.metadata.create_all(bind=engine)
-        inserir_acomodacoes(db)
+        add_accomodation(db)
     finally:
         db.close()
 
-class Acomodacoes(BaseModel):
+class Accomodation(BaseModel):
     id: int
     nome: str
     img: str
     preco: int
     localizacao: str
+    descricao: str
 
-@app.get("/acomodacoes", response_model=List[Acomodacoes])
-async def get_acomodacoes(
+@app.get("/acomodacoes", response_model=List[Accomodation])
+async def get_accomodations(
     db: db_dependency,
-    cidade: Optional[str] = Query(None, description="Filtrar por cidade")
+    cidade: Optional[str] = Query(None, description="Get accomodation by city")
 ):
-    query = db.query(models.Acomodacoes)
+    query = db.query(models.Accomodation)
     if cidade:
-        query = query.filter(models.Acomodacoes.localizacao.ilike(f"%{cidade}%"))
+        query = query.filter(models.Accomodation.localizacao.ilike(f"%{cidade}%"))
     return query.all()
 
-@app.get("/acomodacoes/{id}", response_model=Acomodacoes)
-def obter_acomodacao(id: int, db: db_dependency):
-    acomodacao = db.query(models.Acomodacoes).filter(models.Acomodacoes.id == id).first()
-    if not acomodacao:
-        raise HTTPException(status_code=404, detail="Acomodação não encontrada")
-    return acomodacao
+@app.get("/acomodacoes/{id}", response_model=Accomodation)
+def get_accomodation_by_id(id: int, db: db_dependency):
+    accomodation = db.query(models.Accomodation).filter(models.Accomodation.id == id).first()
+    if not accomodation:
+        raise HTTPException(status_code=404, detail="Not found")
+    return accomodation
