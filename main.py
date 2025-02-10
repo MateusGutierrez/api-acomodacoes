@@ -11,17 +11,16 @@ app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
 
 origins = [
-    "http://localhost:3000",  # React em desenvolvimento
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    "https://meusite.com",  # Produção
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Permitir apenas esses domínios
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Permitir todos os métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permitir todos os headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 def add_accomodation(db: Session):
